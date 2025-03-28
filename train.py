@@ -12,7 +12,7 @@ import os
 import argparse
 from config import cfg
 import torch.distributed as dist
-
+from adapter import LoRA, apply_lora_to_model
 def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
@@ -69,10 +69,7 @@ if __name__ == '__main__':
     train_loader, query_loader, gallery_loader, num_query, num_classes, camera_num, view_num = make_dataloader(cfg)
 
     model = make_model(cfg, num_class=num_classes, camera_num=camera_num, view_num = view_num)
-    # model.load_param(cfg.MODEL.PRETRAIN_PATH)
-    # model.base.cls_token_dis_rgb.data = model.base.cls_token.data
-    # # model.base.cls_token_dis_ir.data = model.base.cls_token.data
-    # model.base.pos_embed_f.data = torch.cat((model.base.pos_embed.data[:,0,:].unsqueeze(dim=1), model.base.pos_embed.data),dim=1)
+    model = apply_lora_to_model(model)
 
     loss_func, center_criterion = make_loss(cfg, num_classes=num_classes)
     optimizer, optimizer_center = make_optimizer(cfg, model, center_criterion)
